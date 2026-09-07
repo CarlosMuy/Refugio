@@ -1,16 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
 
 package com.mycompany.refugio;
 
-/**
- *
- * @author Universidad
- */
+import javax.swing.SwingUtilities;
+
 public class Refugio {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        SwingUtilities.invokeLater(() -> {
+            ControlSistema sistema = new ControlSistema();
+            VentanaLogin login = new VentanaLogin(sistema);
+            login.setVisible(true);
+        });
     }
 }

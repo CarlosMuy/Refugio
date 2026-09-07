@@ -1,0 +1,1 @@
+07/09/2026 11:47 | admin1 | AUTENTICACION | LOGIN_OK | Inicio de sesión correcto
