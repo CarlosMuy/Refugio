@@ -13,9 +13,10 @@ public class VentanaPrincipal extends JFrame {
  
     private final ControlSistema sistema;
     private JPanel panelMatriz;
-    
+    private JTextField txtCodigo;
     private JTextField txtNombre;
     private JComboBox<String> cbEspecie;
+    private JComboBox<String> comboEstadoClinico;
     private JSpinner spEdad;
     private JComboBox<Integer> cbFila;
     private JComboBox<Integer> cbColumna;
@@ -98,18 +99,26 @@ public class VentanaPrincipal extends JFrame {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
+        txtCodigo = new JTextField(15);
         txtNombre = new JTextField(15);
         cbEspecie = new JComboBox<>(new String[]{"Perro", "Gato"});
+        comboEstadoClinico = new JComboBox<>(new String[]{"EN_OBSERVACION", "EN_TRATAMIENTO", "APTO"});
         spEdad = new JSpinner(new SpinnerNumberModel(1, 0, 30, 1));
         cbFila = new JComboBox<>(new Integer[]{1, 2, 3, 4});
         cbColumna = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5});
         
         int y = 0;
+        gbc.gridx = 0; gbc.gridy = y; panelMain.add(new JLabel("Código:"), gbc);
+        gbc.gridx = 1; panelMain.add(txtCodigo, gbc); y++;
+        
         gbc.gridx = 0; gbc.gridy = y; panelMain.add(new JLabel("Nombre:"), gbc);
         gbc.gridx = 1; panelMain.add(txtNombre, gbc); y++;
         
         gbc.gridx = 0; gbc.gridy = y; panelMain.add(new JLabel("Especie:"), gbc);
         gbc.gridx = 1; panelMain.add(cbEspecie, gbc); y++;
+        
+        gbc.gridx = 0; gbc.gridy = y; panelMain.add(new JLabel("Estado Clínico:"), gbc);
+        gbc.gridx = 1; panelMain.add(comboEstadoClinico, gbc); y++;
         
         gbc.gridx = 0; gbc.gridy = y; panelMain.add(new JLabel("Edad:"), gbc);
         gbc.gridx = 1; panelMain.add(spEdad, gbc); y++;
@@ -133,28 +142,45 @@ public class VentanaPrincipal extends JFrame {
         JPanel panelContenedor = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panelContenedor.add(panelMain);
         return panelContenedor;
+        
     }
     
     private void registrarAnimal(){
+        String codigo = txtCodigo.getText().trim();
         String nombre = txtNombre.getText().trim();
         String especie = (String) cbEspecie.getSelectedItem();
+        String estadoClinico = (String) comboEstadoClinico.getSelectedItem();
         int edad = (int) spEdad.getValue();
         int fila = (int) cbFila.getSelectedItem() - 1;
         int col = (int) cbColumna.getSelectedItem() - 1;
+        
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar el Código del animal.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         
         if (nombre.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Debe ingresar el Nombre del animal.", "Atencion", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        boolean exito = sistema.registrarAnimal(nombre, especie, edad, fila, col);
+        boolean exito = sistema.registrarAnimalConValidacion(codigo, nombre, especie, edad, estadoClinico, fila, col);
         
         if(exito) {
             JOptionPane.showMessageDialog(this, "Animal registrado exitosamenten en la ubicación" + (fila + 1) + "-J" + (col + 1), "Exito", JOptionPane.INFORMATION_MESSAGE);
+            txtCodigo.setText("");
             txtNombre.setText("");
+            spEdad.setValue(1);
             actualizarMatrizVisual();
         } else {
-            JOptionPane.showMessageDialog(this, "La jaula" + (fila + 1) + "-J" + (col + 1) + "Ya esta ocupada.", "Error de Asignación", JOptionPane.ERROR_MESSAGE);
+            
+            String ultimoError = sistema.getUltimoError();
+            
+            if (ultimoError == null || ultimoError.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se pudo registrar el animal. Verifique los datos.", "Error de Asignación", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, ultimoError, "Error de validación", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
     private JPanel crearPanelBitacora() {

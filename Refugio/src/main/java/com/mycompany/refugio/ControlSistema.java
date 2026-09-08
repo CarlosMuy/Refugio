@@ -29,6 +29,22 @@ public class ControlSistema {
     private String usuarioLogueado = "";
     private String rolLogueado = "";
     
+    private String ultimoError = "";
+    
+    public void registrarError(String modulo, String tipoEvento, String descripcion) {
+        this.ultimoError = descripcion;
+        
+        if(totalErrores < MAX_BITACORA) {
+            bitacoraErrores[totalErrores] = new EntradaBitacora(getFechaActual(), usuarioLogueado, modulo, tipoEvento, descripcion);
+            totalErrores++;
+            guardarArchivoTexto("bitacora_errores.txt", bitacoraErrores, totalErrores);
+        }
+    }
+    
+    public String getUltimoError() {
+        return ultimoError;
+    }
+    
     public ControlSistema() {
         for (int i = 0; i < FILAS_ZONAS; i++) {
             for (int j = 0; j < COLUMNAS_JAULAS; j++) {
@@ -50,14 +66,6 @@ public class ControlSistema {
         }
     }
     
-    public void registrarError(String modulo, String tipoEvento, String descripcion) {
-        if (totalErrores <MAX_BITACORA) {
-            bitacoraErrores[totalErrores] = new EntradaBitacora(getFechaActual(), usuarioLogueado, modulo, tipoEvento, descripcion);
-            totalErrores++;
-            guardarArchivoTexto("bitacora_errores.txt", bitacoraErrores , totalErrores);
-        }
-    }
-    
     private void guardarArchivoTexto(String archivo, EntradaBitacora[] arreglo, int limite) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(archivo))) {
             for (int i = 0; i < limite; i++) {
@@ -68,25 +76,88 @@ public class ControlSistema {
         }
     }
     
-    public boolean registrarAnimal(String nombre, String especie, int edad, int fila, int col) {
-        if (fila >= 0 && fila < FILAS_ZONAS && col >= 0 && col < COLUMNAS_JAULAS) {
-            if (matrizRefugio[fila][col].isEmpty()) {
-                String codigo = "A-" + (fila + 1) + "-" + (col + 1);
-                
-                Animal nuevo = new Animal(codigo, nombre, especie, edad, "sano", "disponible");
-                if (contadorAnimales < MAX_ANIMALES) {
-                    ListaAnimales[contadorAnimales] = nuevo;
-                    contadorAnimales++;
-                }
-                
-                matrizRefugio[fila][col] = nombre;
-                registrarAccion("REGISTRO", "ANIMAL_REGISTRADO", "Animal " + nombre + " asignado a z" + (fila + 1) + "_J" + (col + 1));
-                
+    public boolean existeCodigoAnimal(String codigo) {
+        for (int i = 0; i < contadorAnimales; i++) {
+            if (ListaAnimales[i] != null && ListaAnimales[i].getCodigo().equalsIgnoreCase(codigo)) {
                 return true;
-            } else {
-                registrarError("REGISTRO", "JAULA_OCUPADA", "Intento de registro en casilla ocupada z" + (fila + 1) + "_J" + (col + 1));
             }
         }
+        return false;
+    }
+    
+    public boolean registrarAnimalConValidacion(String codigo, String nombre, String especie, int edad, String estadoClinico, int fila, int col) {
+        if (codigo == null || !codigo.matches("^A-\\d+$")) {
+            registrarError("ANIMALES", "CODIGO_INVALIDO", "Formato de codigo incorrecto: " + codigo);
+            return false;
+        }
+        if (existeCodigoAnimal(codigo)) {
+            registrarError("ANIMALES", "CODIGO_DUPLICADO", "El codigo " + codigo + " ya existe o fue dado de baja.");
+            return false;
+        }
+        
+        if (!especie.equalsIgnoreCase("Perro") && !especie.equalsIgnoreCase("Gato")) {
+            registrarError("ANIMALES", "ESPECIE_INVALIDA" , "Especie fuera de dominio: " + especie);
+            return false;
+        }
+        
+        if (edad < 0 || edad > 25) {
+            registrarError("ANIMALES", "EDAD_INVALIDA", "Edad fuera de rango: " + edad);
+            return false;
+        }
+        
+        if (!estadoClinico.equals("EN_OBSERVACION") && !estadoClinico.equals("EN_TRATAMIENTO") && !estadoClinico.equals("APTO")) {
+            registrarError("ANIMALES", "ESTADO_CLINICO_INVALIDO", "Estado clinico no permitido: " + estadoClinico);
+            return false;
+        }
+        
+        if (fila < 0 || fila >= FILAS_ZONAS || col < 0 || col >= COLUMNAS_JAULAS) {
+            registrarError("ANIMALES", "POSICION_INVALIDA", "Coordenadas fuera de rango.");
+            return false;
+        }
+        
+        if (matrizRefugio[fila][col] != null && !matrizRefugio[fila][col].toString().trim().isEmpty()){ {
+            registrarError("ANIMALES", "JAULA_OCUPADA", "La jaula z" + (fila + 1) + "_J" + (col + 1) + " esta ocupada.");
+            return false;
+         }
+        }
+        
+        Animal nuevo = new Animal(codigo, nombre, especie, edad, estadoClinico, "DISPONIBLE");
+        
+        if (contadorAnimales < MAX_ANIMALES) {
+        ListaAnimales[contadorAnimales] = nuevo;
+        contadorAnimales++;
+    }
+        
+        matrizRefugio[fila][col] = nombre;
+        registrarAccion("ANIMALES", "ANIML_REGISTRADO", "Animal " + codigo + " (" + nombre + ") asignado a z" + (fila + 1) + "_J" + (col + 1));
+        return true;
+    }
+    
+    public boolean darDeBajaAnimal(String codigo) { 
+        for (int i = 0; i < contadorAnimales; i++){
+            Animal a = ListaAnimales[i];
+            if (a != null && a.getCodigo().equalsIgnoreCase(codigo)) {
+                if (a.getEstadoAdopcion().equals("ELIMINADO")) {
+                    registrarError("ANIMALES", "BAJA_FALLIDA", "El animal " + codigo + " ya esta ELIMINADO.");
+                    return false;
+                }
+                
+                a.setEstadoAdopcion("ELIMINADO");
+                
+                for (int f = 0; f < FILAS_ZONAS; f++) {
+                    for (int c = 0; c < COLUMNAS_JAULAS; c++) {
+                        if (matrizRefugio[f][c].equalsIgnoreCase(a.getNombre())) {
+                            matrizRefugio[f][c] = "";
+                        }
+                    }
+            }
+            
+            registrarAccion("ANIMALES", "BAJA_LOGICA", "Animal " + codigo + " marcado como ELIMINADO.");
+            return false;
+        }
+                
+    }
+        registrarError("ANIMALES", "ANIMAL_NO_ENCONTRADO", "No se encontro el animal con codigo: " + codigo);
         return false;
     }
     
