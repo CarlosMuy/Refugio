@@ -1,1 +1,1 @@
-07/09/2026 11:47 |  | AUTENTICACION | LOGIN_FALLIDO | Contraseña incorrecta (intento 1 de 3)
+08/09/2026 09:21 | admin1 | REGISTRO | JAULA_OCUPADA | Intento de registro en casilla ocupada z3_J3

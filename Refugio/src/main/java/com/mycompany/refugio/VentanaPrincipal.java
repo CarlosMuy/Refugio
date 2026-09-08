@@ -3,6 +3,11 @@ package com.mycompany.refugio;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
+import javax.swing.JButton;
+import java.awt.BorderLayout;
 
 public class VentanaPrincipal extends JFrame {
  
@@ -153,8 +158,29 @@ public class VentanaPrincipal extends JFrame {
         }
     }
     private JPanel crearPanelBitacora() {
-        JPanel panel = new JPanel(new FlowLayout());
-        panel.add(new JLabel("Visor de Bitácoras y registros de persistencia."));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        
+        JTextArea txtBitacoraAcciones = new JTextArea();
+        JTextArea txtBitacoraErrores = new JTextArea();
+        txtBitacoraAcciones.setEditable(false);
+        txtBitacoraErrores.setEditable(false);
+        
+        JTabbedPane subTabbed = new JTabbedPane();
+        subTabbed.addTab("ACCIONES", new JScrollPane(txtBitacoraAcciones));
+        subTabbed.addTab("Errores", new JScrollPane(txtBitacoraErrores));
+        
+        JButton btnRefrescar = new JButton("Actualizar Bitácora");
+        btnRefrescar.addActionListener(e -> {
+            txtBitacoraAcciones.setText(sistema.cargarBitacoraTexto("bitacora_acciones.txt"));
+            txtBitacoraErrores.setText(sistema.cargarBitacoraTexto("bitacora_errores.txt"));
+        });
+        
+        txtBitacoraAcciones.setText(sistema.cargarBitacoraTexto("bitacora_acciones.txt"));
+        txtBitacoraErrores.setText(sistema.cargarBitacoraTexto("bitacora_errores.txt"));
+        
+        panel.add(subTabbed, BorderLayout.CENTER);
+        panel.add(btnRefrescar, BorderLayout.SOUTH);
+        
         return panel;
     }
 }
