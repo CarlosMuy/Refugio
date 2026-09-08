@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class ControlSistema {
     private static final int MAX_ANIMALES = 100;
@@ -65,6 +68,28 @@ public class ControlSistema {
         }
     }
     
+    public boolean registrarAnimal(String nombre, String especie, int edad, int fila, int col) {
+        if (fila >= 0 && fila < FILAS_ZONAS && col >= 0 && col < COLUMNAS_JAULAS) {
+            if (matrizRefugio[fila][col].isEmpty()) {
+                String codigo = "A-" + (fila + 1) + "-" + (col + 1);
+                
+                Animal nuevo = new Animal(codigo, nombre, especie, edad, "sano", "disponible");
+                if (contadorAnimales < MAX_ANIMALES) {
+                    ListaAnimales[contadorAnimales] = nuevo;
+                    contadorAnimales++;
+                }
+                
+                matrizRefugio[fila][col] = nombre;
+                registrarAccion("REGISTRO", "ANIMAL_REGISTRADO", "Animal " + nombre + " asignado a z" + (fila + 1) + "_J" + (col + 1));
+                
+                return true;
+            } else {
+                registrarError("REGISTRO", "JAULA_OCUPADA", "Intento de registro en casilla ocupada z" + (fila + 1) + "_J" + (col + 1));
+            }
+        }
+        return false;
+    }
+    
     public boolean autenticar(String usuario, String contrasena){
         if (usuario.equals("admin1") && contrasena.equals("Refugio2026")) {
             usuarioLogueado = usuario;
@@ -82,5 +107,32 @@ public class ControlSistema {
     
     public String getUsuarioLogueado() { return usuarioLogueado; }
     public String getRolLogueado() { return rolLogueado; }
+    
+    public Animal obtenerAnimalEnMatriz(int fila, int col){
+        if (fila >= 0 && fila < 4 && col >= 0 && col < 5) {
+            String nombreOID = matrizRefugio[fila][col];
+            if (nombreOID != null && !nombreOID.isEmpty()) {
+                for (Animal a: ListaAnimales) {
+                    if (a != null && a.getNombre().equals(nombreOID)) {
+                        return a;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    public String cargarBitacoraTexto(String nombreArchivo) {
+        StringBuilder contenido = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                contenido.append(linea).append("\n");
+            }
+        } catch (IOException e) {
+            return "No se pudo leer el archivo " + nombreArchivo + " o aún no contiene registros.";
+        }
+        return contenido.length() > 0 ? contenido.toString() : "El archivo está vacío.";
+    }
 }
 
