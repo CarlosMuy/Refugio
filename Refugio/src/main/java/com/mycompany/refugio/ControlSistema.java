@@ -244,6 +244,68 @@ public class ControlSistema {
     return true;
 }
     
+    public boolean aprobarSolicitudAdopcion(String codigoSolicitud) {
+        if (codigoSolicitud == null || codigoSolicitud.trim().isEmpty()) {
+            return false;
+        }
+        
+        String codSolicitudLimpio = codigoSolicitud.trim();
+        SolicitudAdopcion solicitudAprobar = null;
+        
+        for (int i = 0; i < contadorSolicitudes; i++) {
+            if (listaSolicitudes[i] != null && listaSolicitudes[i].getCodigo() != null) {
+                if (listaSolicitudes[i].getCodigo().trim().equalsIgnoreCase(codSolicitudLimpio)) {
+                    break;
+                }
+            }
+        }
+        
+        if (solicitudAprobar == null) {
+            registrarError("SOLICITUDES", "NO_ENCONTRADA", "No se encontró la solicitud con código: " + codSolicitudLimpio);
+            return false;
+        }
+        
+        if (!"PENDIENTE".equalsIgnoreCase(solicitudAprobar.getEstado())) {
+            registrarError("SOLICITUDES", "ESTADO_INVALIDO", "Solo se pueden aprobar solicitudes en estado PENDIENTE.");
+            return false;
+        }
+        
+        solicitudAprobar.setEstado("APROBADA");
+        registrarAccion("SOLICITUDES", "SOLICITUD_APROBADA", "Se aprobó la solicitud: " + codSolicitudLimpio);
+        
+        String codAnimalTarget = solicitudAprobar.getCodigoAnimal();
+        
+        boolean animalEncontrado = false;
+        if (codAnimalTarget != null) {
+            for (int i = 0; i < contadorAnimales; i++) {
+                if (ListaAnimales[i]!= null && ListaAnimales[i].getCodigo() != null) {
+                    if (ListaAnimales[i].getCodigo().trim().equalsIgnoreCase(codAnimalTarget.trim())) {
+                    ListaAnimales[i].setEstadoAdopcion("ADOPTADO");
+                    animalEncontrado = true;
+                    registrarAccion("ANIMALES", "ESTADO_CAMBIADO", "El animal " + codAnimalTarget + " cambió a estado ADOPTADO.");
+                    break;
+                }
+            }
+        }
+    }
+        
+    if (codAnimalTarget != null) {
+        for (int i = 0; i < contadorSolicitudes; i++) {
+            SolicitudAdopcion s = listaSolicitudes[i];
+            if (s != null && s != solicitudAprobar && s.getCodigoAnimal() != null && s.getEstado() != null) {
+                if (s.getCodigoAnimal().trim().equalsIgnoreCase(codAnimalTarget.trim())) {
+                    if ("PENDIENTE".equalsIgnoreCase(s.getEstado().trim())) {
+                        s.setEstado("RECHAZADA");
+                        registrarAccion("SOLICITUDES", "RECHAZO_AUTOMATICO", "Solicitud " + s.getCodigo() + " fue RECHAZADA automáticamente por adopción de animal " + codAnimalTarget);
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+ } 
+    
     public boolean autenticar(String usuario, String contrasena){
         if (usuario.equals("admin1") && contrasena.equals("Refugio2026")) {
             usuarioLogueado = usuario;
@@ -364,8 +426,8 @@ public class ControlSistema {
         }
         
         String codAnimal = solicitudAprobar.getCodigoAnimal();
-        solicitudAprobar.setEstado("APROBAR");
-        registrarAccion("SOLICITUDES", "SOLICITUD_APROBADA", "Solicitud " + codigoSolicitud + " aprobada.");
+        solicitudAprobar.setEstado("COMPLETADA");
+        registrarAccion("SOLICITUDES", "SOLICITUD_COMPLETADA", "Se completó la solicitud: " + codigoSolicitud);
         
         Animal a = buscarAnimalPorCodigo(codAnimal);
         if (a != null) {
@@ -382,34 +444,61 @@ public class ControlSistema {
         }
         return true;
     }
-
-    public boolean eliminarAdoptante(String dpi) {
-        for (int i = 0; i < contadorAdoptantes; i++) {
-            if (listaAdoptantes[i] != null && listaAdoptantes[i].getDpi().equals(dpi)) {
-             if (listaAdoptantes[i].isTieneSolicitudAprobadaActiva()) {
-                registrarError("ADOPTANTES", "ELIMINACION_INVALIDA", "No se puede eliminar un adoptante con una solicitud Aprobada activa.");
-                return false;
-            }
-            
-            for (int j = i; j < contadorAdoptantes - 1; j++) {
-                listaAdoptantes[j] = listaAdoptantes[j + 1];
-            }
-            listaAdoptantes[contadorAdoptantes - 1] = null;
-            contadorAdoptantes--;
-            
-            registrarAccion("ADOPTANTES", "ELIMINACION_EXITOSA", "Se eliminó al adoptante con DPI: " + dpi);
-            return true;
-        }
-    }
-    registrarError("ADOPTANTES", "NO_ENCONTRADO", "No se encontró ningún adoptante con el DPI especificado.");
-    return false;
-}
     
-    public void liberarCelda(int fila, int columna) {
-        if (fila >= 0 && fila < FILAS_ZONAS && columna >= 0 && columna < COLUMNAS_JAULAS) {
-            matrizRefugio[fila][columna] = null;
+    public boolean eliminarAdoptante(String dpi) {
+        if (dpi == null || dpi.trim().isEmpty()) {
+            registrarError("ADOPTANTES", "DPI_VACIO", "Debe ingresar un DPI de adoptante.");
+            return false;
         }
+        
+        String dpiLimpio = dpi.trim();
+        int indiceEncontrado = -1;
+        
+        for (int i = 0; i < contadorAdoptantes; i++) {
+            if (listaAdoptantes[i] != null && listaAdoptantes[i].getDpi() != null) {
+                if (listaAdoptantes[i].getDpi().trim().equalsIgnoreCase(dpiLimpio)) {
+                    indiceEncontrado = i;
+                    break;
+                }
+            }
+        }
+        
+        if (indiceEncontrado == -1) {
+            registrarError("ADOPTANTES", "NO_ENCONTRADO", "No se encontró ningún adoptante con el DPI especificado.");
+            return false;
+        }
+        
+        String codigoAdoptante = listaAdoptantes[indiceEncontrado].getCodigo();
+        if (codigoAdoptante != null) {
+            codigoAdoptante = codigoAdoptante.trim();
+        }
+        
+        for (int i = 0; i < contadorSolicitudes; i++) {
+            SolicitudAdopcion s = listaSolicitudes[i];
+            if (s != null && s.getEstado() != null && s.getCodigoAdoptante() != null) {
+                
+                String codEnSolicitud = s.getCodigoAdoptante().trim();
+                String estado = s.getEstado().toUpperCase().trim();
+                
+                if (codigoAdoptante != null && codEnSolicitud.equalsIgnoreCase(codigoAdoptante)) {
+                    if ("PENDIENTE".equals(estado) || "EN_PROCESO".equals(estado)) {
+                        registrarError("ADOPTANTES", "ELIMINACION_NO_PERMITIDA", "No se puede eliminar el adoptatne porque tiene una solicitud activa en estado: " + estado);
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        for (int i = indiceEncontrado; i < contadorAdoptantes - 1; i++) {
+            listaAdoptantes[i] = listaAdoptantes[i + 1];
+        }
+        listaAdoptantes[--contadorAdoptantes] = null;
+        
+        registrarAccion("ADOPTANTES", "ELIMINACION_EXITOSA", "Se eliminó al adoptante con DPI: " + dpiLimpio);
+        return true;
+        
     }
+        
     
     public String getUsuarioLogueado() { return usuarioLogueado; }
     public String getRolLogueado() { return rolLogueado; }

@@ -7,6 +7,7 @@ public class SolicitudAdopcion {
     private String codigoAdopcion;
     private String fecha;
     private String estado;
+    private String codigoAdoptante;
     
     public SolicitudAdopcion(String codigo, String codigoAnimal, String codigoAdopcion, String fecha) {
         this.codigo = codigo;
@@ -22,4 +23,7 @@ public class SolicitudAdopcion {
     public String getFecha() { return fecha; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getCodigoAdoptante() {
+        return codigoAdoptante;
+    }
 }

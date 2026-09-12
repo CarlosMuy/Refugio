@@ -1,6 +1,9 @@
-10/09/2026 22:20 | admin1 | AUTENTICACION | LOGIN_OK | Inicio de sesión correcto
-10/09/2026 22:21 | admin1 | ANIMALES | ANIML_REGISTRADO | Animal A-123 (Toby) asignado a z2_J4
-10/09/2026 22:21 | admin1 | ANIMALES | CAMBIO_ESTADO | Se actualizo el estado clinico de A-123 a APTO
-10/09/2026 22:22 | admin1 | ADOPTANTES | REGISTRO_EXITOSO | Adoptante registrado: Carlos Muy (DPI: 3024729830102)
-10/09/2026 22:22 | admin1 | SOLICITUDES | SOLICITUD_CREADA | Solicitud S-001 creada para animal A-123
-10/09/2026 22:23 | admin1 | ADOPTANTES | ELIMINACION_EXITOSA | Se eliminó al adoptante con DPI: 3024729830102
+12/09/2026 13:50 | admin1 | AUTENTICACION | LOGIN_OK | Inicio de sesión correcto
+12/09/2026 13:51 | admin1 | ANIMALES | ANIML_REGISTRADO | Animal A-123 (Toby) asignado a z1_J1
+12/09/2026 13:52 | admin1 | ADOPTANTES | REGISTRO_EXITOSO | Adoptante registrado: Carlos Muy (DPI: 3024729830102)
+12/09/2026 13:52 | admin1 | ADOPTANTES | REGISTRO_EXITOSO | Adoptante registrado: Estuardo Muy (DPI: 3569539120102)
+12/09/2026 13:53 | admin1 | ANIMALES | CAMBIO_ESTADO | Se actualizo el estado clinico de A-123 a APTO
+12/09/2026 13:53 | admin1 | SOLICITUDES | SOLICITUD_CREADA | Solicitud S-001 creada para animal A-123
+12/09/2026 13:55 | admin1 | SOLICITUDES | SOLICITUD_CREADA | Solicitud S-002 creada para animal A-123
+12/09/2026 13:55 | admin1 | ADOPTANTES | ELIMINACION_EXITOSA | Se eliminó al adoptante con DPI: 3024729830102
+12/09/2026 13:56 | admin1 | ADOPTANTES | ELIMINACION_EXITOSA | Se eliminó al adoptante con DPI: 3569539120102

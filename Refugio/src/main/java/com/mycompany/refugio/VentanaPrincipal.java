@@ -384,26 +384,28 @@ public class VentanaPrincipal extends JFrame {
             JOptionPane.showMessageDialog(panel, sistema.getUltimoError(), "Error de Registro", JOptionPane.ERROR_MESSAGE);
         }
     });
-
+    
     btnEliminar.addActionListener(e -> {
         String dpi = txtDpi.getText().trim();
         if (dpi.isEmpty()) {
-            JOptionPane.showMessageDialog(panel, "Ingrese el DPI del adoptante a eliminar en el campo DPI.", "Atención", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Ingrese el DPI del adoptante a eliminar", "Atención", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int confirm = JOptionPane.showConfirmDialog(panel, "¿Desea eliminar al adoptante con DPI " + dpi + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+        
+        int confirm = JOptionPane.showConfirmDialog(this, "¿Desea eliminar al adoptante con DPI " + dpi + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+        
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean exito = sistema.eliminarAdoptante(dpi);
-            if (exito) {
-                JOptionPane.showMessageDialog(panel, "Adoptante eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                txtDpi.setText("");
-            } else {
-                JOptionPane.showMessageDialog(panel, sistema.getUltimoError(), "Error de Eliminación", JOptionPane.ERROR_MESSAGE);
-            }
+        boolean exito = sistema.eliminarAdoptante(dpi);
+        
+        if (exito) {
+            JOptionPane.showMessageDialog(this, "Adoptante eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            txtDpi.setText("");
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo eliminar el adoptante. Verifique la bitácora o que no tenga solicitudes activas.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+      }  
     });
-
+ 
     return panel;
 }
     private JPanel crearPanelBitacora() {
