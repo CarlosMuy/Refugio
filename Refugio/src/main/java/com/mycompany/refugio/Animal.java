@@ -9,14 +9,18 @@ public class Animal {
     private int edadEstimada;
     private String estadoClinico;
     private String estadoAdopcion;
+    private int fila;
+    private int col;
     
-    public Animal(String codigo, String nombre, String especie, int edadEstimada, String estadoClinico, String estadoAdopcion) {
+    public Animal(String codigo, String nombre, String especie, int edadEstimada, String estadoClinico, int fila, int col) {
         this.codigo = codigo;
         this.nombre = nombre;
         this.especie = especie;
         this.edadEstimada = edadEstimada;
         this.estadoClinico = estadoClinico;
-        this.estadoAdopcion = estadoAdopcion;
+        this.estadoAdopcion = "APTO".equalsIgnoreCase(estadoClinico) ? "DISPONIBLE" : "EN_PROCESO";
+        this.fila = fila;
+        this.col = col;
         
     }
     
@@ -24,12 +28,20 @@ public class Animal {
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
     
+    public int getFila() { return fila; }
+    public int getCol() { return col; }
+    
     public String getEspecie() { return especie;}
     public int getEdadEstimada() { return edadEstimada; }
     public int getEdad() { return edadEstimada; }
     
     public String getEstadoClinico() { return estadoClinico; }
-    public void setEstadoClinico(String estadoClinico) { this.estadoClinico = estadoClinico; }
+    public void setEstadoClinico(String estadoClinico) {
+        this.estadoClinico = estadoClinico;
+        if ("APTO".equalsIgnoreCase(estadoClinico) && !"ADOPTADO".equals(this.estadoAdopcion)) {
+            this.estadoAdopcion = "DISPONIBLE";
+        }
+    }
     
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public void setEstadoAdopcion(String estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
